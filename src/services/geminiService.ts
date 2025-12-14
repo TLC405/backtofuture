@@ -1,14 +1,8 @@
+
 import { GoogleGenAI } from "@google/genai";
 import type { GenerateContentResponse } from "@google/genai";
 
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-    throw new Error("API_KEY environment variable is not set.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
-
+// Helper to extract image data or throw if only text is returned
 function processGeminiResponse(response: GenerateContentResponse): string {
     if (response.candidates?.[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
@@ -22,21 +16,31 @@ function processGeminiResponse(response: GenerateContentResponse): string {
     throw new Error(`AI responded with text: "${textResponse || 'No text received.'}"`);
 }
 
+// Internal function to handle the API call with dynamic client initialization
 async function callGeminiApi(modelName: 'gemini-3-pro-image-preview' | 'gemini-2.5-flash-image', imagePart: object, textPart: object) {
+    const API_KEY = process.env.API_KEY;
+    if (!API_KEY) {
+        throw new Error("API_KEY environment variable is not set. Please check your configuration.");
+    }
+    
+    // Initialize client here to ensure we use the latest key and avoid top-level load crashes
+    const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+    // 16:9 is the supported landscape aspect ratio for these models
     const imageConfig = modelName === 'gemini-3-pro-image-preview'
-        ? { aspectRatio: "16:10", imageSize: "2K" }
-        : { aspectRatio: "16:10" };
+        ? { aspectRatio: "16:9", imageSize: "2K" }
+        : { aspectRatio: "16:9" };
     
     return await ai.models.generateContent({
         model: modelName,
         contents: { parts: [imagePart, textPart] },
         config: { 
             imageConfig,
-            ...(modelName === 'gemini-3-pro-image-preview' && { thinkingConfig: { thinkingBudget: 32768 } })
         },
     });
 }
 
+// Public export used by the UI
 export async function generateDecadeImage(imageDataUrl: string, prompt: string): Promise<{url: string, warning?: string}> {
     const match = imageDataUrl.match(/^data:(image\/\w+)+;base64,(.*)$/);
     if (!match) throw new Error("Invalid image data URL.");
