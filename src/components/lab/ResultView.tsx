@@ -1,4 +1,5 @@
-import { FaDownload, FaExclamationTriangle } from 'react-icons/fa';
+
+import { FaDownload, FaExclamationTriangle, FaShareAlt } from 'react-icons/fa';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -16,28 +17,37 @@ interface ResultViewProps {
   decades: string[];
   onSelectDecade: (decade: string) => void;
   onDownload: (decade: string) => void;
+  onShare?: (decade: string) => void;
 }
 
-export function ResultView({ selectedDecade, generatedImages, onDownload }: ResultViewProps) {
+export function ResultView({ selectedDecade, generatedImages, onDownload, onShare }: ResultViewProps) {
   const currentImage = generatedImages[selectedDecade];
-  // Determine actual status, default to 'idle' if no image record exists
   const status = currentImage ? currentImage.status : 'idle';
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden bg-black border border-white/5">
       
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-6 flex justify-between items-start bg-gradient-to-b from-black/80 to-transparent">
-        <div>
+      <div className="absolute top-0 left-0 right-0 z-20 p-6 flex justify-between items-start bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+        <div className="pointer-events-auto">
           <h2 className="font-heading text-4xl font-bold text-white tracking-tight">{selectedDecade}</h2>
           <p className="text-xs font-mono text-primary mt-1 tracking-widest uppercase">Studio Noir Render</p>
         </div>
         
         {status === 'done' && (
-           <div className="flex gap-2">
+           <div className="flex gap-2 pointer-events-auto">
+             {onShare && (
+                 <button 
+                    onClick={() => onShare(selectedDecade)}
+                    className="h-10 px-4 flex items-center gap-2 rounded-full bg-white/10 hover:bg-white text-white hover:text-black transition-colors backdrop-blur-md text-sm font-bold border border-white/10"
+                 >
+                   <FaShareAlt size={12} /> Share Card
+                 </button>
+             )}
              <button 
                 onClick={() => onDownload(selectedDecade)}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-primary text-white transition-colors backdrop-blur-md"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-primary text-white transition-colors backdrop-blur-md border border-white/10"
+                title="Download Original"
              >
                <FaDownload size={14} />
              </button>

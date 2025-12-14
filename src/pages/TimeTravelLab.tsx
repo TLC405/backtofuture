@@ -4,10 +4,14 @@ import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import { generateDecadeImage } from '../services/geminiService';
 import { DECADES, AESTHETICS, constructPrompt } from '../data/epochs';
+import { createShareableCard } from '../lib/albumUtils';
 import { LabHeader } from '../components/lab/LabHeader';
 import { ControlPanel } from '../components/lab/ControlPanel';
 import { ResultView } from '../components/lab/ResultView';
 import { MusicPlayer } from '../components/lab/MusicPlayer';
+import { MasterTerminal } from '../components/lab/MasterTerminal';
+import { TimeCircuits } from '../components/lab/TimeCircuits';
+import { FaTerminal } from 'react-icons/fa';
 
 type ImageStatus = 'pending' | 'done' | 'error';
 interface GeneratedImage {
@@ -25,6 +29,10 @@ export default function TimeTravelLab() {
     // State for selections
     const [selectedDecade, setSelectedDecade] = useState<string>(DECADES[0]);
     const [selectedAesthetic, setSelectedAesthetic] = useState<string>(AESTHETICS[0].id);
+    
+    // Pro Features
+    const [showTerminal, setShowTerminal] = useState(false);
+    const [lastPrompt, setLastPrompt] = useState<string>("");
 
     const handleImageUpload = (file: File) => {
         const reader = new FileReader();
@@ -49,6 +57,7 @@ export default function TimeTravelLab() {
 
         // Construct dynamic prompt based on mixing choices
         const prompt = constructPrompt(selectedDecade, selectedAesthetic);
+        setLastPrompt(prompt);
         
         try {
             const result = await generateDecadeImage(uploadedImage, prompt);
@@ -70,6 +79,23 @@ export default function TimeTravelLab() {
         }
     };
 
+    const handleShare = async (decade: string) => {
+         const image = generatedImages[decade];
+         if (image?.status === 'done' && image.url) {
+             try {
+                 toast.info("Forging Temporal Identity Card...");
+                 const cardUrl = await createShareableCard(image.url, decade);
+                 const link = document.createElement('a');
+                 link.href = cardUrl;
+                 link.download = `RewindCard-${decade}.jpg`;
+                 link.click();
+                 toast.success("Identity Card Exported.");
+             } catch (e) {
+                 toast.error("Failed to create shareable card.");
+             }
+         }
+    };
+
     return (
         <div className="min-h-screen bg-background flex flex-col overflow-hidden">
             <Helmet>
@@ -83,7 +109,7 @@ export default function TimeTravelLab() {
             <div className="flex-1 flex flex-col lg:flex-row pt-20 h-screen">
                 
                 {/* Left: Control Deck */}
-                <div className="w-full lg:w-96 z-20 flex-shrink-0 bg-background/50 border-r border-white/5 backdrop-blur-xl">
+                <div className="w-full lg:w-96 z-20 flex-shrink-0 bg-background/50 border-r border-white/5 backdrop-blur-xl relative">
                     <ControlPanel 
                         appState={appState}
                         uploadedImage={uploadedImage}
@@ -94,16 +120,38 @@ export default function TimeTravelLab() {
                         selectedAesthetic={selectedAesthetic}
                         onSelectAesthetic={setSelectedAesthetic}
                     />
+                    
+                    {/* Pro Tool: Terminal Trigger */}
+                    {lastPrompt && (
+                        <button 
+                            onClick={() => setShowTerminal(true)}
+                            className="absolute bottom-24 right-6 text-white/20 hover:text-primary transition-colors"
+                            title="View System Prompt"
+                        >
+                            <FaTerminal />
+                        </button>
+                    )}
                 </div>
 
                 {/* Right: Viewport */}
-                <div className="flex-1 bg-black relative z-10">
+                <div className="flex-1 bg-black relative z-10 flex flex-col">
+                    
+                    {/* Time Circuits overlay when Idle */}
+                    {appState === 'idle' && !uploadedImage && (
+                        <div className="absolute top-10 left-0 right-0 z-20 flex justify-center pointer-events-none opacity-50">
+                            <div className="scale-75 origin-top">
+                                <TimeCircuits />
+                            </div>
+                        </div>
+                    )}
+
                     <ResultView
                         selectedDecade={selectedDecade}
                         generatedImages={generatedImages}
                         decades={DECADES}
                         onSelectDecade={setSelectedDecade}
                         onDownload={handleDownload}
+                        onShare={handleShare}
                     />
                 </div>
             </div>
@@ -114,6 +162,14 @@ export default function TimeTravelLab() {
                 audioSrc="https://actions.google.com/sounds/v1/science_fiction/digital_world.ogg"
                 albumArt="https://picsum.photos/seed/noir/200"
             />
+
+            {showTerminal && (
+                <MasterTerminal 
+                    prompts={{ [selectedDecade]: lastPrompt }}
+                    decades={[selectedDecade]} 
+                    onClose={() => setShowTerminal(false)} 
+                />
+            )}
         </div>
     );
 }

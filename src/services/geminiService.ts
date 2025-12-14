@@ -18,12 +18,14 @@ function processGeminiResponse(response: GenerateContentResponse): string {
 
 // Internal function to handle the API call with dynamic client initialization
 async function callGeminiApi(modelName: 'gemini-3-pro-image-preview' | 'gemini-2.5-flash-image', imagePart: object, textPart: object) {
+    // CRITICAL: Read process.env.API_KEY inside the function, not at module level.
+    // This ensures we get the key after the user selects it in the UI.
     const API_KEY = process.env.API_KEY;
     if (!API_KEY) {
-        throw new Error("API_KEY environment variable is not set. Please check your configuration.");
+        throw new Error("API Key is missing. Please complete the authentication step.");
     }
     
-    // Initialize client here to ensure we use the latest key and avoid top-level load crashes
+    // Initialize client here to ensure we use the latest key
     const ai = new GoogleGenAI({ apiKey: API_KEY });
 
     // 16:9 is the supported landscape aspect ratio for these models
@@ -36,6 +38,7 @@ async function callGeminiApi(modelName: 'gemini-3-pro-image-preview' | 'gemini-2
         contents: { parts: [imagePart, textPart] },
         config: { 
             imageConfig,
+            ...(modelName === 'gemini-3-pro-image-preview' && { thinkingConfig: { thinkingBudget: 32768 } })
         },
     });
 }

@@ -11,7 +11,7 @@ if (!rootElement) {
     throw new Error("Critical Error: Root element 'root' not found in document.");
 }
 
-// Force basic styles on root to prevent white flash
+// Set basic styles to avoid white flash
 rootElement.style.backgroundColor = '#050505';
 rootElement.style.minHeight = '100vh';
 
