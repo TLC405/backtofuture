@@ -44,7 +44,7 @@ export function MasterTerminal({ prompts, decades, onClose }: MasterTerminalProp
                 </div>
                 <div className="flex flex-1 overflow-hidden">
                     <aside className="w-1/4 p-4 border-r border-neutral-light/30 overflow-y-auto">
-                        <p className="font-mono text-xs text-foreground/60 mb-2">> TARGET_EPOCHS</p>
+                        <p className="font-mono text-xs text-foreground/60 mb-2">&gt; TARGET_EPOCHS</p>
                         <nav className="flex flex-col gap-1">
                             {decades.map(decade => (
                                 <button 
