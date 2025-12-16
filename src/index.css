@@ -29,6 +29,11 @@
     --ring: 210 100% 58%;
 
     --radius: 0.5rem;
+
+    /* Neutral colors */
+    --neutral: 0 0% 10%;          /* #1a1a1a */
+    --neutral-light: 0 0% 15%;    /* #262626 */
+    --neutral-dark: 0 0% 5%;      /* #0d0d0d */
   }
 }
 

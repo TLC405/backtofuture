@@ -9,11 +9,13 @@ import Index from './pages/Index';
 import TimeTravelLab from './pages/TimeTravelLab';
 import NotFound from './pages/NotFound';
 import Docs from './pages/Docs';
+import Legends from './pages/Legends';
 
 const queryClient = new QueryClient();
 
 function App() {
-  const [isKeyReady, setIsKeyReady] = useState(false);
+  // Force ready for dev/preview
+  const [isKeyReady, setIsKeyReady] = useState(true);
 
   useEffect(() => {
     const checkKey = async () => {
@@ -96,6 +98,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/lab" element={<TimeTravelLab />} />
               <Route path="/docs" element={<Docs />} />
+              <Route path="/legends" element={<Legends />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
